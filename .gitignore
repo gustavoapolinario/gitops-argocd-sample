@@ -1,0 +1,3 @@
+argocd-local-users/argocd-cm*.yml
+argocd-rbac/argocd-rbac-cm*.yml
+argocd-rbac/merged*.yml

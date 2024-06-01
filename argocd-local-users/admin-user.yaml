@@ -1,0 +1,11 @@
+# Yaml ilustrative to knowledge
+# Your yaml needs information from actual yaml file
+# This manifest will be merged with the current to generate the correct one
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-cm
+  namespace: argocd
+data:
+  accounts.adminuser: apiKey, login
+  accounts.adminuser.enabled: "true"
