@@ -1,0 +1,7 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: argocd-example-apps
+  namespace: argocd
+spec:
+  description: Project to argocd examples

@@ -1,3 +1,6 @@
+# This is the static way to create the application.
+# For dynamic creation use Application Set
+# With Application Set, you can declare multiples directories inside yout rep
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:

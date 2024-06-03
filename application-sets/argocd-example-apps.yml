@@ -1,0 +1,32 @@
+# argocd appset create application-sets/argocd-example-apps.yml --port-forward --port-forward-namespace argocd
+# argocd appset delete argocd-example-apps  --port-forward --port-forward-namespace argocd
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: argocd-example-apps
+spec:
+  generators:
+  - git:
+      repoURL: https://github.com/argoproj/argocd-example-apps.git
+      revision: HEAD
+      directories:
+      - path: guestbook/
+  template:
+    metadata:
+      name: '{{path.basename}}'
+    spec:
+      project: "argocd-example-apps"
+      source:
+        repoURL: https://github.com/argoproj/argocd-example-apps.git
+        targetRevision: HEAD
+        path: '{{.path.path}}'
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: '{{path.basename}}'
+      syncPolicy:
+        syncOptions:
+        - CreateNamespace=true
+        automated:
+          selfHeal: true
+          prune: true
+          allowEmpty: true

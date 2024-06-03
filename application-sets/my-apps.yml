@@ -1,0 +1,43 @@
+# argocd appset create application-sets/my-apps.yml --port-forward --port-forward-namespace argocd
+# argocd appset create application-sets/my-apps.yml --port-forward --port-forward-namespace argocd --upsert # Update
+# argocd appset delete my-apps --port-forward --port-forward-namespace argocd
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: my-apps
+spec:
+  generators:
+  - git:
+      repoURL: https://github.com/gustavoapolinario/gitops-argocd-sample.git
+      revision: HEAD
+      directories:
+      - path: my-apps/*
+  template:
+    metadata:
+      name: '{{path.basename}}'
+    spec:
+      project: "my-project"
+      source:
+        repoURL: https://github.com/gustavoapolinario/gitops-argocd-sample.git
+        targetRevision: HEAD
+        path: '{{path}}'
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: '{{path.basename}}'
+      
+      syncPolicy:
+        syncOptions:
+        - CreateNamespace=true
+        automated:
+          selfHeal: true
+          prune: true
+          allowEmpty: true
+
+      #   # https://argo-cd.readthedocs.io/en/stable/operator-manual/applicationset/Controlling-Resource-Modification/
+      #   # Sync policy. The Application will be sync with the ApplicationSet?
+      #   applicationsSync: create-only # create-update, create-delete sync
+
+      # # Ignore application difference temporarily. It is usefull to do a maintenance on the application and the applicationsSync is sync
+      # ignoreApplicationDifferences:
+      #   - jsonPointers:
+      #       - /spec/syncPolicy

@@ -1,0 +1,81 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: my-project
+  namespace: argocd
+spec:
+  description: My example project
+  sourceRepos:
+    # Do not use the test repo in argoproj
+    - '!ssh://git@GITHUB.com:argoproj/test'
+    # Nor any Gitlab repo under group/ 
+    - '!https://gitlab.com/group/**'
+    # Any other repo is fine though
+    - '*'
+  destinations:
+      # Do not allow any app to be installed in `kube-system`  
+    - namespace: '!kube-system'
+      server: '*'
+    # Or any cluster that has a URL of `team1-*`   
+    - namespace: '*'
+      server: '!https://team1-*'
+      # Any other namespace or server is fine though.
+    - namespace: '*'
+      server: '*'
+  clusterResourceWhitelist:
+    - group: '*'
+      kind: '*'
+  namespaceResourceBlacklist:
+    - group: '*'
+      kind: 'Secret'
+  
+  # Example to roles on project
+  roles:
+    - name: admin
+      description: Admin role with full permissions
+      policies:
+        - p, proj:my-project:admin, applications, *, my-project/*, allow
+      groups:
+        - my-org:admin
+    - name: sync
+      description: Admin role with full permissions
+      policies:
+        - p, proj:my-project:admin, applications, *, my-project/*, allow
+      groups:
+        - my-org:admin
+    - name: read-only
+      description: Read-only role with view permissions
+      policies:
+        - p, proj:example-project:read-only, applications, get, example-project/*, allow
+      groups:
+        - example-org:read-only
+    - name: read-sync
+      description: Role allowing get and sync actions
+      policies:
+        - p, proj:example-project:read-sync, applications, get, example-project/*, allow
+        - p, proj:example-project:read-sync, applications, sync, example-project/*, allow
+      groups:
+        - example-org:read-sync
+        
+  # Example sync allowing change after 18h and before 5h. Saturday allowed and sunday blocked.
+  syncWindows:
+    - kind: deny
+      schedule: "0 6 * * 1-5"  # Monday to Friday at 06:00 UTC
+      duration: 12h             # Block until 18:00 UTC
+      applications:
+        - '*'
+    - kind: deny
+      schedule: "0 0 * * 0"    # Sunday at 00:00 UTC
+      duration: 24h             # Block all day Sunday
+      applications:
+        - '*'
+    - kind: allow
+      schedule: "0 18 * * 1-5"  # Monday to Friday at 18:00 UTC
+      duration: 12h             # Allow until 06:00 UTC next day
+      applications:
+        - '*'
+    - kind: allow
+      schedule: "0 0 * * 6"     # Saturday at 00:00 UTC
+      duration: 24h             # Allow all day Saturday
+      applications:
+        - '*'
